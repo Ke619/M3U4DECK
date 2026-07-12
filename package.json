@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "IPTV Player for Linux",
   "main": "src/main.js",
+  "author": "Ke619",
   "scripts": {
     "start": "electron .",
     "build": "electron-builder --linux AppImage"
@@ -10,13 +11,13 @@
   "build": {
     "appId": "com.iptv.player",
     "productName": "IPTV Player",
+    "files": [
+      "src/**/*"
+    ],
     "linux": {
       "target": "AppImage",
       "category": "AudioVideo"
-    },
-    "files": [
-      "src/**/*"
-    ]
+    }
   },
   "devDependencies": {
     "electron": "^36.0.0",
