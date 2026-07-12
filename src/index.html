@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>IPTV Player</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a26;--bg4:#22223a;
+  --accent:#6c63ff;--accent2:#4f46e5;--accent3:#818cf8;
+  --text:#f1f1f5;--text2:#9090b0;--text3:#50506a;
+  --border:#1e1e30;--danger:#f85149;--success:#22c55e;
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:system-ui,sans-serif}
+
+/* Topbar */
+#topbar{display:flex;align-items:center;gap:12px;padding:0 20px;height:52px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;-webkit-app-region:drag}
+#topbar button{-webkit-app-region:no-drag}
+#logo{font-size:1rem;font-weight:800;display:flex;align-items:center;gap:8px;-webkit-app-region:no-drag}
+#logo .icon{background:var(--accent2);border-radius:7px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:.85rem}
+#logo .txt{background:linear-gradient(90deg,var(--accent3),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+#np{flex:1;min-width:0;font-size:.82rem;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 12px}
+#np-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--success);margin-right:6px;display:none;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.2}}
+.tb-btn{background:transparent;border:1px solid var(--border);color:var(--text2);padding:5px 12px;border-radius:7px;cursor:pointer;font-size:.76rem;transition:all .15s;white-space:nowrap}
+.tb-btn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* App */
+#app{display:flex;flex-direction:column;height:calc(100vh - 52px)}
+.screen{display:none;flex-direction:column;flex:1;overflow:hidden}
+.screen.on{display:flex}
+
+/* Screen header */
+.sh{display:flex;align-items:center;gap:14px;padding:14px 20px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0}
+.back{background:transparent;border:1px solid var(--border);color:var(--text2);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:.8rem;transition:all .15s}
+.back:hover{border-color:var(--accent);color:var(--accent)}
+.sh-info{flex:1;min-width:0}
+.sh-title{font-size:1.1rem;font-weight:700}
+.sh-sub{font-size:.75rem;color:var(--text3);margin-top:2px}
+.sh-search{position:relative}
+.sh-search input{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:7px 12px 7px 30px;border-radius:8px;font-size:.8rem;outline:none;width:200px;transition:all .2s}
+.sh-search input:focus{border-color:var(--accent);width:240px}
+.sh-search input::placeholder{color:var(--text3)}
+.sh-search .si{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:.74rem;pointer-events:none}
+
+/* Scrollable area */
+.grid-area{flex:1;overflow-y:auto;padding:20px}
+.grid-area::-webkit-scrollbar{width:4px}
+.grid-area::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:2px}
+
+/* Playlists */
+#pl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+.plc{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:20px;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;gap:10px}
+.plc:hover{border-color:var(--accent);background:var(--bg3);transform:translateY(-2px)}
+.plc-top{display:flex;align-items:center;justify-content:space-between}
+.plc-icon{width:44px;height:44px;border-radius:10px;background:#4f46e520;border:1px solid #4f46e540;display:flex;align-items:center;justify-content:center;font-size:1.3rem}
+.plc-del{background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:.85rem;padding:5px 8px;border-radius:6px;transition:all .15s}
+.plc-del:hover{color:var(--danger);background:#f8514915}
+.plc-name{font-weight:700;font-size:.95rem}
+.plc-meta{font-size:.75rem;color:var(--text3)}
+.pl-open-btn{background:var(--accent2);border:none;color:#fff;padding:9px;border-radius:8px;cursor:pointer;font-size:.82rem;font-weight:600;transition:all .15s;width:100%}
+.pl-open-btn:hover{background:var(--accent)}
+#pl-add{display:flex;gap:10px;margin-top:6px}
+.add-btn{padding:10px 22px;border-radius:9px;font-size:.85rem;font-weight:600;cursor:pointer;border:none;transition:all .15s}
+.add-btn.p{background:var(--accent2);color:#fff}
+.add-btn.p:hover{background:var(--accent)}
+.add-btn.s{background:var(--bg3);border:1px solid var(--border);color:var(--text2)}
+.add-btn.s:hover{border-color:var(--text2);color:var(--text)}
+
+/* Bouquets */
+#bq-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px}
+.bqc{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:20px;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;gap:8px}
+.bqc:hover{border-color:var(--accent);background:var(--bg3);transform:translateY(-2px)}
+.bqc-icon{font-size:2rem}
+.bqc-name{font-weight:700;font-size:.9rem;line-height:1.3}
+.bqc-count{font-size:.72rem;color:var(--text3)}
+
+/* Channels */
+#ch-content{display:flex;flex:1;overflow:hidden}
+#ch-grid-wrap{flex:1;overflow-y:auto;padding:16px}
+#ch-grid-wrap::-webkit-scrollbar{width:4px}
+#ch-grid-wrap::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:2px}
+#ch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.chc{background:var(--bg2);border:1px solid var(--border);border-radius:11px;padding:14px 10px;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;position:relative}
+.chc:hover{border-color:var(--accent)60;background:var(--bg3);transform:translateY(-2px)}
+.chc.on{border-color:var(--accent);background:#4f46e510}
+.chc.playing{border-color:var(--success)}
+.chc.playing::after{content:'▶';position:absolute;top:6px;right:8px;font-size:.6rem;color:var(--success)}
+.chc-logo{width:48px;height:48px;object-fit:contain;border-radius:8px}
+.chc-init{width:48px;height:48px;border-radius:10px;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:800;color:var(--text3)}
+.chc-name{font-size:.74rem;font-weight:600;line-height:1.3;color:var(--text);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+
+/* Video panel */
+#vid-panel{width:320px;background:var(--bg2);border-left:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
+#vid-wrap{background:#000;position:relative;flex-shrink:0}
+video{width:100%;display:block;aspect-ratio:16/9}
+#vid-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;pointer-events:none}
+#vid-spin{width:36px;height:36px;border:3px solid #fff2;border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;display:none}
+@keyframes spin{to{transform:rotate(360deg)}}
+#vid-msg{font-size:.8rem;color:#ffffffaa;display:none;text-align:center;padding:0 16px}
+#vid-err{font-size:.8rem;color:#fca5a5;display:none;text-align:center;padding:0 16px}
+#vid-idle{font-size:.82rem;color:#ffffff44;display:block;text-align:center;padding:0 16px}
+#vid-info{padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+#vid-name{font-size:.9rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#vid-group{font-size:.72rem;color:var(--text3)}
+#vid-ctrls{display:flex;gap:8px;padding:0 16px 12px}
+.vc{background:var(--bg3);border:1px solid var(--border);color:var(--text2);padding:7px 14px;border-radius:8px;cursor:pointer;font-size:.78rem;font-weight:500;transition:all .15s;flex:1}
+.vc:hover{border-color:var(--accent);color:var(--accent)}
+.vc.stop:hover{border-color:var(--danger);color:var(--danger)}
+#vol-row{display:flex;align-items:center;gap:8px;padding:0 16px 14px}
+#vol-row label{font-size:.72rem;color:var(--text3)}
+#vol{flex:1;accent-color:var(--accent)}
+
+/* Modals */
+.overlay{position:fixed;inset:0;background:#000c;display:none;align-items:center;justify-content:center;z-index:200;backdrop-filter:blur(6px)}
+.overlay.on{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:26px;width:100%;max-width:420px;display:flex;flex-direction:column;gap:14px}
+.modal h3{font-size:1rem;font-weight:700}
+.modal-tabs{display:flex;border-bottom:1px solid var(--border)}
+.mtab{padding:8px 16px;font-size:.82rem;cursor:pointer;border-bottom:2px solid transparent;color:var(--text3);transition:all .15s;margin-bottom:-1px}
+.mtab.on{border-bottom-color:var(--accent);color:var(--text)}
+.mpanel{display:none;flex-direction:column;gap:12px}
+.mpanel.on{display:flex}
+.mfield{display:flex;flex-direction:column;gap:5px}
+.mfield label{font-size:.75rem;color:var(--text2);font-weight:500}
+.mfield input{background:var(--bg3);border:1px solid var(--border);color:var(--text);padding:9px 12px;border-radius:8px;font-size:.88rem;outline:none;transition:border-color .15s}
+.mfield input:focus{border-color:var(--accent)}
+.merr{font-size:.78rem;color:var(--danger);display:none}
+.mstat{font-size:.78rem;color:var(--text2);display:none}
+.mbtns{display:flex;gap:8px;justify-content:flex-end;padding-top:4px}
+.mbtn{padding:9px 20px;border-radius:8px;font-size:.83rem;font-weight:600;cursor:pointer;border:none;transition:all .15s}
+.mbtn.ok{background:var(--accent2);color:#fff}
+.mbtn.ok:hover{background:var(--accent)}
+.mbtn.ok:disabled{opacity:.4;cursor:not-allowed}
+.mbtn.cx{background:var(--bg3);border:1px solid var(--border);color:var(--text2)}
+
+/* Gamepad hint */
+#gp-bar{position:fixed;bottom:0;left:0;right:0;background:#000b;padding:5px 16px;display:none;align-items:center;gap:18px;font-size:.7rem;color:var(--text3);pointer-events:none;z-index:50}
+#gp-bar.on{display:flex}
+.gph{display:flex;align-items:center;gap:5px}
+.gpk{background:var(--bg3);border:1px solid var(--border);border-radius:3px;padding:1px 6px;font-size:.66rem;color:var(--text2)}
+</style>
+</head>
+<body>
+
+<div id="topbar">
+  <div id="logo"><div class="icon">📺</div><div class="txt">IPTV</div></div>
+  <div id="np"><span id="np-dot"></span><span id="np-text">Nothing playing</span></div>
+</div>
+
+<div id="app">
+
+  <!-- Screen 1: Playlists -->
+  <div class="screen on" id="s-pl">
+    <div class="sh" style="justify-content:space-between">
+      <div class="sh-info"><div class="sh-title">Your Playlists</div><div class="sh-sub">Select a playlist to browse channels</div></div>
+      <div id="pl-add">
+        <button class="add-btn p" id="btn-url">＋ Add URL</button>
+        <button class="add-btn s" id="btn-file">＋ Add File</button>
+      </div>
+    </div>
+    <div class="grid-area"><div id="pl-grid"></div></div>
+  </div>
+
+  <!-- Screen 2: Bouquets -->
+  <div class="screen" id="s-bq">
+    <div class="sh">
+      <button class="back" id="bq-back">← Back</button>
+      <div class="sh-info"><div class="sh-title" id="bq-title">Playlist</div><div class="sh-sub" id="bq-sub"></div></div>
+      <div class="sh-search"><span class="si">🔍</span><input id="bq-search" type="text" placeholder="Search bouquets…"/></div>
+    </div>
+    <div class="grid-area"><div id="bq-grid"></div></div>
+  </div>
+
+  <!-- Screen 3: Channels -->
+  <div class="screen" id="s-ch">
+    <div class="sh">
+      <button class="back" id="ch-back">← Back</button>
+      <div class="sh-info"><div class="sh-title" id="ch-title">Bouquet</div><div class="sh-sub" id="ch-sub"></div></div>
+      <div class="sh-search"><span class="si">🔍</span><input id="ch-search" type="text" placeholder="Search channels…"/></div>
+    </div>
+    <div id="ch-content">
+      <div id="ch-grid-wrap"><div id="ch-grid"></div></div>
+      <div id="vid-panel">
+        <div id="vid-wrap">
+          <video id="vid" autoplay playsinline></video>
+          <div id="vid-overlay">
+            <div id="vid-spin"></div>
+            <div id="vid-msg"></div>
+            <div id="vid-err"></div>
+            <div id="vid-idle">Select a channel<br/>to start playing</div>
+          </div>
+        </div>
+        <div id="vid-info">
+          <div id="vid-name">No channel selected</div>
+          <div id="vid-group"></div>
+        </div>
+        <div id="vid-ctrls">
+          <button class="vc" id="vc-pp">⏸ Pause</button>
+          <button class="vc stop" id="vc-stop">⏹ Stop</button>
+        </div>
+        <div id="vol-row">
+          <label>Vol</label>
+          <input id="vol" type="range" min="0" max="1" step="0.05" value="1"/>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Add playlist modal -->
+<div class="overlay" id="pl-overlay">
+  <div class="modal">
+    <h3>Add Playlist</h3>
+    <div class="modal-tabs">
+      <div class="mtab on" data-t="url">From URL</div>
+      <div class="mtab" data-t="file">From File</div>
+    </div>
+    <div class="mpanel on" id="tp-url">
+      <div class="mfield"><label>Name</label><input id="m-name" type="text" placeholder="My Playlist"/></div>
+      <div class="mfield"><label>M3U URL</label><input id="m-url" type="url" placeholder="http://…/playlist.m3u"/></div>
+    </div>
+    <div class="mpanel" id="tp-file">
+      <div class="mfield"><label>Name</label><input id="m-fname" type="text" placeholder="My Playlist"/></div>
+    </div>
+    <div class="merr" id="pl-err"></div>
+    <div class="mstat" id="pl-stat"></div>
+    <div class="mbtns">
+      <button class="mbtn cx" id="pl-cx">Cancel</button>
+      <button class="mbtn ok" id="pl-ok">Add</button>
+    </div>
+  </div>
+</div>
+
+<!-- Gamepad hints -->
+<div id="gp-bar">
+  <span class="gph"><span class="gpk">↑↓←→</span>Navigate</span>
+  <span class="gph"><span class="gpk">A</span>Play / Select</span>
+  <span class="gph"><span class="gpk">B</span>Back</span>
+  <span class="gph"><span class="gpk">Y</span>Search</span>
+  <span class="gph"><span class="gpk">Start</span>Pause</span>
+  <span class="gph"><span class="gpk">LB RB</span>Volume</span>
+</div>
+
+<script>
+'use strict';
+
+// State
+let playlists=[], channels=[], bouquets=[], bqChannels=[], filteredBq=[], filteredCh=[];
+let activePl=null, activeBq=null, playingCh=null, activeChIdx=0, activeBqIdx=0, mtab='url';
+let playId=0;
+
+const $=id=>document.getElementById(id);
+
+// Boot
+(async()=>{ playlists=await window.api.getPlaylists(); renderPl(); })();
+
+// ── Playlists ─────────────────────────────────────────────────────────────────
+function renderPl(){
+  const g=$('pl-grid'); g.innerHTML='';
+  if(!playlists.length){ g.innerHTML='<div style="color:var(--text3);font-size:.85rem;padding:20px">No playlists yet — add one above!</div>'; return; }
+  playlists.forEach(pl=>{
+    const d=document.createElement('div'); d.className='plc';
+    d.innerHTML=`<div class="plc-top"><div class="plc-icon">📋</div><button class="plc-del">✕</button></div>
+      <div class="plc-name">${esc(pl.name)}</div>
+      <div class="plc-meta">${pl.count??'?'} channels · ${pl.type==='url'?'URL':'File'}</div>
+      <button class="pl-open-btn">Open</button>`;
+    d.querySelector('.plc-del').onclick=e=>{e.stopPropagation();delPl(pl.id);};
+    d.querySelector('.pl-open-btn').onclick=e=>{e.stopPropagation();openPl(pl);};
+    d.onclick=()=>openPl(pl);
+    g.appendChild(d);
+  });
+}
+
+async function delPl(id){ await window.api.removePlaylist(id); playlists=playlists.filter(p=>p.id!==id); renderPl(); }
+
+async function openPl(pl){
+  activePl=pl; showScreen('s-bq');
+  $('bq-title').textContent=pl.name; $('bq-sub').textContent='Loading…';
+  $('bq-grid').innerHTML='';
+  const res=await window.api.loadPlaylist(pl);
+  if(!res.success){ $('bq-sub').textContent='Error: '+res.error; return; }
+  channels=res.channels;
+  const gMap=new Map();
+  channels.forEach(c=>{ if(!gMap.has(c.group))gMap.set(c.group,[]); gMap.get(c.group).push(c); });
+  bouquets=[...gMap.entries()].map(([name,chs])=>({name,channels:chs}));
+  filteredBq=[...bouquets]; activeBqIdx=0;
+  $('bq-sub').textContent=`${bouquets.length} bouquets · ${channels.length} channels`;
+  $('bq-search').value='';
+  renderBq(filteredBq);
+}
+
+// ── Bouquets ──────────────────────────────────────────────────────────────────
+function getBqIcon(n){ n=n.toLowerCase();
+  if(/sport|football|soccer|nba|nfl/.test(n))return'⚽';
+  if(/movie|film|cinema|vod/.test(n))return'🎬';
+  if(/news/.test(n))return'📰';
+  if(/kids|child|cartoon/.test(n))return'🧸';
+  if(/music/.test(n))return'🎵';
+  if(/docu/.test(n))return'🎥';
+  if(/series|show/.test(n))return'📺';
+  if(/radio/.test(n))return'📻';
+  return'📡';
+}
+
+function renderBq(bqs){
+  const g=$('bq-grid'); g.innerHTML='';
+  if(!bqs.length){ g.innerHTML='<div style="color:var(--text3);padding:40px">No bouquets found</div>'; return; }
+  bqs.forEach((bq,i)=>{
+    const d=document.createElement('div'); d.className='bqc'+(i===activeBqIdx?' on':'');
+    d.innerHTML=`<div class="bqc-icon">${getBqIcon(bq.name)}</div>
+      <div class="bqc-name">${esc(bq.name)}</div>
+      <div class="bqc-count">${bq.channels.length} channels</div>`;
+    d.onclick=()=>openBq(bq);
+    g.appendChild(d);
+  });
+}
+
+function openBq(bq){
+  activeBq=bq; bqChannels=[...bq.channels]; filteredCh=[...bq.channels]; activeChIdx=0;
+  $('ch-title').textContent=bq.name; $('ch-sub').textContent=`${bq.channels.length} channels`;
+  $('ch-search').value='';
+  renderCh(filteredCh); showScreen('s-ch');
+}
+
+$('bq-back').onclick=()=>showScreen('s-pl');
+$('bq-search').oninput=e=>{ const q=e.target.value.toLowerCase(); filteredBq=bouquets.filter(b=>b.name.toLowerCase().includes(q)); renderBq(filteredBq); };
+
+// ── Channels ──────────────────────────────────────────────────────────────────
+function renderCh(chs){
+  const g=$('ch-grid'); g.innerHTML='';
+  if(!chs.length){ g.innerHTML='<div style="color:var(--text3);padding:40px">No channels</div>'; return; }
+  chs.forEach((ch,i)=>{
+    const d=document.createElement('div');
+    const isPlaying=playingCh&&playingCh.url===ch.url;
+    d.className='chc'+(i===activeChIdx?' on':'')+(isPlaying?' playing':'');
+    const init=esc(ch.name.slice(0,2).toUpperCase());
+    const logo=ch.logo?`<img class="chc-logo" src="${esc(ch.logo)}" loading="lazy" onerror="this.outerHTML='<div class=chc-init>${init}</div>'">`:
+      `<div class="chc-init">${init}</div>`;
+    d.innerHTML=`${logo}<div class="chc-name">${esc(ch.name)}</div>`;
+    d.onclick=()=>selCh(i);
+    g.appendChild(d);
+  });
+}
+
+function selCh(idx){
+  activeChIdx=idx;
+  document.querySelectorAll('.chc').forEach((el,i)=>el.classList.toggle('on',i===idx));
+  playCh(filteredCh[idx]);
+}
+
+$('ch-back').onclick=()=>{ stopPlay(); showScreen('s-bq'); };
+$('ch-search').oninput=e=>{ const q=e.target.value.toLowerCase(); filteredCh=bqChannels.filter(c=>c.name.toLowerCase().includes(q)); activeChIdx=0; renderCh(filteredCh); };
+
+// ── Playback ──────────────────────────────────────────────────────────────────
+const vid=$('vid');
+function playCh(ch){
+  const id=++playId;
+  stopPlay(); playingCh=ch;
+  setOverlay('spin',ch.name);
+  $('np-dot').style.display='inline-block';
+  $('np-text').textContent=ch.name;
+  $('vid-name').textContent=ch.name;
+  $('vid-group').textContent=ch.group||'';
+
+  const streamUrl=`http://localhost:3444/stream?url=${encodeURIComponent(ch.url)}`;
+  vid.src=streamUrl; vid.load();
+  vid.oncanplay=()=>{ if(id!==playId)return; setOverlay('none'); vid.play().catch(()=>{}); };
+  vid.onwaiting=()=>{ if(id!==playId)return; setOverlay('spin',ch.name); };
+  vid.onplaying=()=>{ if(id!==playId)return; setOverlay('none'); };
+  vid.onerror=()=>{ if(id!==playId)return; setOverlay('err','Stream error. Try another channel.'); };
+
+  document.querySelectorAll('.chc').forEach((el,i)=>el.classList.toggle('playing',filteredCh[i]?.url===ch.url));
+}
+
+function stopPlay(){
+  vid.pause(); vid.removeAttribute('src'); vid.load();
+  window.api.killStream();
+  playingCh=null;
+  $('np-dot').style.display='none'; $('np-text').textContent='Nothing playing';
+  $('vid-name').textContent='No channel selected'; $('vid-group').textContent='';
+  setOverlay('idle'); $('vc-pp').textContent='⏸ Pause';
+  document.querySelectorAll('.chc').forEach(el=>el.classList.remove('playing'));
+}
+
+function setOverlay(s,txt){
+  $('vid-spin').style.display='none'; $('vid-msg').style.display='none';
+  $('vid-err').style.display='none'; $('vid-idle').style.display='none';
+  if(s==='spin'){ $('vid-spin').style.display='block'; if(txt){$('vid-msg').textContent=txt;$('vid-msg').style.display='block';} }
+  else if(s==='err'){ $('vid-err').textContent=txt; $('vid-err').style.display='block'; }
+  else if(s==='idle'){ $('vid-idle').style.display='block'; }
+}
+
+$('vc-pp').onclick=()=>{ if(vid.paused)vid.play();else vid.pause(); $('vc-pp').textContent=vid.paused?'▶ Resume':'⏸ Pause'; };
+$('vc-stop').onclick=stopPlay;
+$('vol').oninput=e=>{ vid.volume=e.target.value; };
+
+// ── Screens ───────────────────────────────────────────────────────────────────
+function showScreen(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on')); $(id).classList.add('on'); }
+
+// ── Keyboard ──────────────────────────────────────────────────────────────────
+document.addEventListener('keydown',e=>{
+  if(document.querySelector('.overlay.on'))return;
+  const scr=document.querySelector('.screen.on')?.id;
+  if(e.key==='Escape'){ if(scr==='s-ch'){stopPlay();showScreen('s-bq');}else if(scr==='s-bq')showScreen('s-pl'); }
+  if(document.activeElement?.tagName==='INPUT')return;
+  if(e.key==='ArrowDown'&&scr==='s-ch'){e.preventDefault();selCh(Math.min(activeChIdx+1,filteredCh.length-1));}
+  if(e.key==='ArrowUp'&&scr==='s-ch'){e.preventDefault();selCh(Math.max(activeChIdx-1,0));}
+  if(e.key==='Enter'&&scr==='s-ch'){e.preventDefault();selCh(activeChIdx);}
+  if(e.key===' '){e.preventDefault();$('vc-pp').click();}
+  if(e.key==='/')  {e.preventDefault();(scr==='s-ch'?$('ch-search'):$('bq-search'))?.focus();}
+});
+
+// ── Gamepad ───────────────────────────────────────────────────────────────────
+{
+  let gint=null, prev={}, lastMove=0, fast=false;
+  const start=()=>{
+    if(gint)return;
+    gint=setInterval(()=>{
+      const gps=navigator.getGamepads(); let gp=null;
+      for(const g of gps){if(g){gp=g;break;}} if(!gp)return;
+      const btn=i=>gp.buttons[i]?.pressed??false;
+      const just=i=>{const c=btn(i),w=prev[i];prev[i]=c;return c&&!w;};
+      gp.buttons.forEach((b,i)=>prev[i]=b.pressed);
+      const scr=document.querySelector('.screen.on')?.id;
+      if(just(1)){if(scr==='s-ch'){stopPlay();showScreen('s-bq');}else if(scr==='s-bq')showScreen('s-pl');return;}
+      if(just(3)){(scr==='s-ch'?$('ch-search'):$('bq-search'))?.focus();return;}
+      if(just(9)){$('vc-pp').click();return;}
+      if(just(0)&&scr==='s-ch'){selCh(activeChIdx);return;}
+      if(just(4)){vid.volume=Math.max(0,vid.volume-.1);$('vol').value=vid.volume;}
+      if(just(5)){vid.volume=Math.min(1,vid.volume+.1);$('vol').value=vid.volume;}
+      const up=btn(12)||(gp.axes[1]??0)<-.5, dn=btn(13)||(gp.axes[1]??0)>.5;
+      if((up||dn)&&scr==='s-ch'){
+        const now=Date.now();
+        if(now-lastMove>(fast?80:300)){selCh(dn?Math.min(activeChIdx+1,filteredCh.length-1):Math.max(activeChIdx-1,0));lastMove=now;if(!fast&&now-lastMove>600)fast=true;}
+      } else fast=false;
+    },33);
+  };
+  window.addEventListener('gamepadconnected',()=>{$('gp-bar').classList.add('on');start();});
+  window.addEventListener('gamepaddisconnected',()=>$('gp-bar').classList.remove('on'));
+  for(const g of navigator.getGamepads()){if(g){$('gp-bar').classList.add('on');start();break;}}
+}
+
+// ── Modal ─────────────────────────────────────────────────────────────────────
+$('btn-url').onclick=()=>openMod('url');
+$('btn-file').onclick=()=>openMod('file');
+$('pl-cx').onclick=closeMod;
+$('pl-overlay').onclick=e=>{if(e.target===$('pl-overlay'))closeMod();};
+document.querySelectorAll('.mtab').forEach(t=>{
+  t.onclick=()=>{mtab=t.dataset.t;document.querySelectorAll('.mtab').forEach(x=>x.classList.toggle('on',x.dataset.t===mtab));$('tp-url').classList.toggle('on',mtab==='url');$('tp-file').classList.toggle('on',mtab==='file');};
+});
+function openMod(tab='url'){
+  mtab=tab;document.querySelectorAll('.mtab').forEach(x=>x.classList.toggle('on',x.dataset.t===mtab));
+  $('tp-url').classList.toggle('on',mtab==='url');$('tp-file').classList.toggle('on',mtab==='file');
+  $('m-name').value='';$('m-url').value='';$('m-fname').value='';
+  $('pl-err').style.display='none';$('pl-stat').style.display='none';
+  $('pl-overlay').classList.add('on');
+  setTimeout(()=>(mtab==='url'?$('m-name'):$('m-fname')).focus(),60);
+}
+function closeMod(){$('pl-overlay').classList.remove('on');}
+function plErr(m){$('pl-err').textContent=m;$('pl-err').style.display='block';$('pl-stat').style.display='none';}
+function plStat(m){$('pl-stat').textContent=m;$('pl-stat').style.display='block';}
+
+$('pl-ok').onclick=async()=>{
+  $('pl-err').style.display='none';
+  const btn=$('pl-ok');btn.disabled=true;
+  try{
+    if(mtab==='url'){
+      const name=$('m-name').value.trim()||'Playlist',url=$('m-url').value.trim();
+      if(!url){plErr('Please enter a URL');return;}
+      plStat('Fetching…');
+      const res=await window.api.addPlaylistUrl({name,url});
+      if(!res.success){plErr(res.error||'Failed');return;}
+      playlists=await window.api.getPlaylists(); renderPl(); closeMod();
+    } else {
+      plStat('Opening file picker…');
+      const res=await window.api.addPlaylistFile();
+      if(!res.success){if(res.error!=='Cancelled')plErr(res.error||'Failed');return;}
+      playlists=await window.api.getPlaylists(); renderPl(); closeMod();
+    }
+  }catch(e){plErr(e.message||'Failed');}
+  btn.disabled=false;$('pl-stat').style.display='none';
+};
+
+function esc(s){return String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+</script>
+</body>
+</html>
