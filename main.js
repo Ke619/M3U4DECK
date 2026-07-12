@@ -11,11 +11,30 @@ let currentFfmpeg = null;
 let streamGeneration = 0;
 
 const getFfmpegPath = () => {
-  const isDev = !app.isPackaged;
-  const base = isDev ? process.cwd() : process.resourcesPath;
-  const resolved = path.join(base, 'resources', 'ffmpeg-linux', 'ffmpeg');
-  if (!fs.existsSync(resolved)) throw new Error(`FFmpeg not found at: ${resolved}`);
-  return resolved;
+  const { execSync } = require('child_process');
+
+  // 1. Try system ffmpeg
+  try {
+    const sys = execSync('which ffmpeg').toString().trim();
+    if (sys && fs.existsSync(sys)) return sys;
+  } catch {}
+
+  // 2. Try next to the AppImage
+  const appImagePath = process.env.APPIMAGE;
+  if (appImagePath) {
+    const nextTo = path.join(path.dirname(appImagePath), 'resources', 'ffmpeg-linux', 'ffmpeg');
+    if (fs.existsSync(nextTo)) return nextTo;
+  }
+
+  // 3. Try next to the executable
+  const nextToExe = path.join(path.dirname(process.execPath), '..', 'resources', 'ffmpeg-linux', 'ffmpeg');
+  if (fs.existsSync(nextToExe)) return nextToExe;
+
+  // 4. Try inside app resources
+  const internal = path.join(process.resourcesPath, 'ffmpeg-linux', 'ffmpeg');
+  if (fs.existsSync(internal)) return internal;
+
+  throw new Error('FFmpeg not found. Install ffmpeg or place it in resources/ffmpeg-linux/ffmpeg');
 };
 
 const killProcess = (proc) => new Promise((resolve) => {
