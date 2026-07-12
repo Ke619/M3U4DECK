@@ -26,7 +26,7 @@ jobs:
 
       - name: Install Python packages
         run: |
-          pip3 install python-mpv pyinstaller --break-system-packages
+          pip3 install python-mpv pyinstaller
 
       - name: Build with PyInstaller
         run: |
