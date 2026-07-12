@@ -1,0 +1,89 @@
+name: Build AppImage
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            python3 python3-pip python3-gi python3-gi-cairo \
+            gir1.2-gtk-4.0 gir1.2-adw-1 \
+            libgtk-4-dev libadwaita-1-dev \
+            mpv libmpv-dev python3-mpv \
+            libgirepository1.0-dev \
+            fuse libfuse2 wget \
+            patchelf desktop-file-utils
+
+      - name: Install Python packages
+        run: |
+          pip3 install python-mpv pyinstaller --break-system-packages
+
+      - name: Build with PyInstaller
+        run: |
+          pyinstaller \
+            --onefile \
+            --name iptv-player \
+            --add-data "src/main.py:." \
+            src/main.py
+
+      - name: Download AppImage tool
+        run: |
+          wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool-x86_64.AppImage
+
+      - name: Create AppDir
+        run: |
+          mkdir -p AppDir/usr/bin
+          mkdir -p AppDir/usr/share/applications
+          mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
+
+          cp dist/iptv-player AppDir/usr/bin/
+
+          cat > AppDir/usr/share/applications/iptv-player.desktop << 'EOF'
+          [Desktop Entry]
+          Name=IPTV Player
+          Exec=iptv-player
+          Icon=iptv-player
+          Type=Application
+          Categories=AudioVideo;Video;
+          EOF
+
+          cat > AppDir/AppRun << 'EOF'
+          #!/bin/bash
+          SELF=$(readlink -f "$0")
+          HERE="${SELF%/*}"
+          export PATH="${HERE}/usr/bin:${PATH}"
+          exec "${HERE}/usr/bin/iptv-player" "$@"
+          EOF
+          chmod +x AppDir/AppRun
+
+          # Simple icon (svg)
+          cat > AppDir/usr/share/icons/hicolor/256x256/apps/iptv-player.svg << 'EOF'
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+            <rect width="256" height="256" rx="48" fill="#4f46e5"/>
+            <text x="128" y="175" font-size="140" text-anchor="middle">📺</text>
+          </svg>
+          EOF
+
+          cp AppDir/usr/share/icons/hicolor/256x256/apps/iptv-player.svg AppDir/iptv-player.svg
+          cp AppDir/usr/share/applications/iptv-player.desktop AppDir/iptv-player.desktop
+
+      - name: Build AppImage
+        run: |
+          ARCH=x86_64 ./appimagetool-x86_64.AppImage AppDir IPTV-Player-x86_64.AppImage
+
+      - name: Upload AppImage
+        uses: actions/upload-artifact@v4
+        with:
+          name: IPTV-Player-AppImage
+          path: IPTV-Player-x86_64.AppImage
