@@ -26,7 +26,7 @@ jobs:
 
       - name: Install python-mpv
         run: |
-          pip3 install python-mpv --break-system-packages
+          pip3 install python-mpv
 
       - name: Create AppDir structure
         run: |
