@@ -8,106 +8,23 @@ on:
 jobs:
   build:
     runs-on: ubuntu-22.04
-
     steps:
       - uses: actions/checkout@v4
 
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
       - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            python3 python3-pip python3-gi python3-gi-cairo \
-            gir1.2-gtk-4.0 gir1.2-adw-1 \
-            libgtk-4-dev libadwaita-1-dev \
-            mpv libmpv-dev \
-            libgirepository1.0-dev \
-            fuse libfuse2 wget patchelf \
-            desktop-file-utils file
-
-      - name: Install python-mpv
-        run: |
-          pip3 install python-mpv
-
-      - name: Create AppDir structure
-        run: |
-          mkdir -p AppDir/usr/bin
-          mkdir -p AppDir/usr/lib
-          mkdir -p AppDir/usr/share/applications
-          mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
-
-      - name: Copy Python app
-        run: |
-          cp src/main.py AppDir/usr/bin/iptv-player.py
-
-          # Find and copy python-mpv
-          MPV_PY=$(python3 -c "import mpv; print(mpv.__file__)")
-          cp "$MPV_PY" AppDir/usr/bin/mpv.py
-
-          # Create launcher script
-          cat > AppDir/usr/bin/iptv-player << 'EOF'
-          #!/bin/bash
-          SELF=$(readlink -f "$0")
-          HERE="${SELF%/*}"
-          export PYTHONPATH="${HERE}:${PYTHONPATH}"
-          exec python3 "${HERE}/iptv-player.py" "$@"
-          EOF
-          chmod +x AppDir/usr/bin/iptv-player
-
-      - name: Bundle MPV libraries
-        run: |
-          # Copy libmpv and its dependencies
-          for lib in $(ldconfig -p | grep -E 'libmpv|librubberband|libavcodec|libavformat|libavutil|libswresample|libswscale' | awk '{print $NF}'); do
-            cp -L "$lib" AppDir/usr/lib/ 2>/dev/null || true
-          done
-
-          # Also copy libmpv specifically
-          find /usr/lib /usr/local/lib -name 'libmpv.so*' -exec cp -L {} AppDir/usr/lib/ \; 2>/dev/null || true
-
-      - name: Create desktop file and icon
-        run: |
-          cat > AppDir/usr/share/applications/iptv-player.desktop << 'EOF'
-          [Desktop Entry]
-          Name=IPTV Player
-          Exec=iptv-player
-          Icon=iptv-player
-          Type=Application
-          Categories=AudioVideo;Video;
-          EOF
-
-          cat > AppDir/usr/share/icons/hicolor/256x256/apps/iptv-player.svg << 'EOF'
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
-            <rect width="256" height="256" rx="48" fill="#4f46e5"/>
-            <text x="128" y="175" font-size="140" text-anchor="middle">📺</text>
-          </svg>
-          EOF
-
-          cp AppDir/usr/share/icons/hicolor/256x256/apps/iptv-player.svg AppDir/iptv-player.svg
-          cp AppDir/usr/share/applications/iptv-player.desktop AppDir/iptv-player.desktop
-
-      - name: Create AppRun
-        run: |
-          cat > AppDir/AppRun << 'EOF'
-          #!/bin/bash
-          SELF=$(readlink -f "$0")
-          HERE="${SELF%/*}"
-          export PATH="${HERE}/usr/bin:${PATH}"
-          export LD_LIBRARY_PATH="${HERE}/usr/lib:${LD_LIBRARY_PATH}"
-          export PYTHONPATH="${HERE}/usr/bin:${PYTHONPATH}"
-          exec python3 "${HERE}/usr/bin/iptv-player.py" "$@"
-          EOF
-          chmod +x AppDir/AppRun
-
-      - name: Download appimagetool
-        run: |
-          wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
-          chmod +x appimagetool-x86_64.AppImage
+        run: npm install
 
       - name: Build AppImage
-        run: |
-          ARCH=x86_64 ./appimagetool-x86_64.AppImage AppDir IPTV-Player-x86_64.AppImage
+        run: npx electron-builder --linux AppImage
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload AppImage
         uses: actions/upload-artifact@v4
         with:
           name: IPTV-Player-AppImage
-          path: IPTV-Player-x86_64.AppImage
+          path: dist/*.AppImage
