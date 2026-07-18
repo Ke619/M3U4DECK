@@ -7,7 +7,10 @@ An IPTV player built for Steam Deck — full gamepad and touchscreen navigation,
 
 > [!CAUTION]
 > M3U4Deck is a media player only. We do not provide playlists, channels, or any streaming content.
-
+> 
+<p align="center">
+  <img src="menu.png" alt="M3U4Deck main menu" width="700"/>
+</p>
 
 ## Features
 - Load M3U playlists from a URL or local file, browse by bouquet/group, search
