@@ -18,7 +18,8 @@ A Free M3U|M3U8 Playlists Player Built for Steam Deck
 - Built-in MAG2M3U Converter — generate a playlist directly from a MAG/Stalker portal URL + MAC address
 - Parental Control Mode — PIN-gated adult content
 - Custom background (image/video/loop)
-- Full gamepad support
+- Full Gamepad support
+- 30 FPS Mode (Low Battery? No problem!)
 
 ## Getting Started
 1. Download the latest release (or clone this repo)
