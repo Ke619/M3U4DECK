@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="logo.png" alt="M3U4Deck logo" width="200"/>
+  <img src="logo.png" alt="M3U4Deck logo" width="350"/>
 </p>
 
 # M3U4Deck
