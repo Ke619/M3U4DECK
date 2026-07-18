@@ -5,7 +5,8 @@
 An IPTV player built for Steam Deck — full gamepad and touchscreen navigation, a built-in MAG/Stalker portal converter, custom backgrounds, and live stream playback via a bundled FFmpeg proxy.
 
 
-⚠️ M3U4Deck is a media player only. We do not provide playlists, channels, or any streaming content.
+> [!CAUTION]
+> M3U4Deck is a media player only. We do not provide playlists, channels, or any streaming content.
 
 
 ## Features
