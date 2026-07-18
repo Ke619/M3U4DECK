@@ -15,8 +15,7 @@ An IPTV player built for Steam Deck — full gamepad and touchscreen navigation,
 - Built-in MAG2M3U Converter — generate a playlist directly from a MAG/Stalker portal URL + MAC address
 - Parental Control Mode — PIN-gated adult content
 - Custom background image or looping video
-- Full gamepad support (Steam Deck controls, D-pad/stick navigation, on-screen cursor) and touchscreen support
-- Gamepad Controls reference page built into Settings
+- Full gamepad support
 
 ## Getting Started
 1. Download the latest release (or clone this repo)
