@@ -13,11 +13,11 @@ A Free M3U|M3U8 Playlists Player Built for Steam Deck
 </p>
 
 ## Features
-- Load M3U playlists from a URL or local file, browse by bouquet/group, search
-- Favorites, resume-last-channel, and combined "All Streams" / "All Favorites" views across every playlist
+- Load M3U playlists from a URL or local file
+- Combined "All Streams" / "All Favorites" views across every playlist
 - Built-in MAG2M3U Converter — generate a playlist directly from a MAG/Stalker portal URL + MAC address
 - Parental Control Mode — PIN-gated adult content
-- Custom background image or looping video
+- Custom background (image/video/loop)
 - Full gamepad support
 
 ## Getting Started
