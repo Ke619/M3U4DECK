@@ -28,7 +28,7 @@ A Free M3U|M3U8 Playlists Player Built for Steam Deck
 ## MAG2M3U (standalone converter)
 Included separately for generating a playlist file from the terminal, without opening the app:
 - **MAG2M3U** — converts a MAG/Stalker portal to an `.m3u` file
-- **MAG2M3U /adult** — same, but also pulls adult channels; password-protected
+- **MAG2M3U_adult** — same, but also pulls Adult content channels; password-protected (Verify your age with our Discord mods to get access.)
 
 ## Support
 - 🐛 Issues / bugs → open a GitHub issue
