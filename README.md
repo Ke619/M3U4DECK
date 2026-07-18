@@ -22,7 +22,7 @@ A Free M3U|M3U8 Playlists Player Built for Steam Deck
 - 30 FPS Mode (Low Battery? No problem!)
 
 ## Getting Started
-1. Download the latest release (or clone this repo)
+1. Download the latest release
 2. Double-click `Add M3U4Deck to Steam.desktop` to add it to your Steam library with controller support pre-configured
 3. Launch from Steam, in Desktop Mode or Gaming Mode
 
