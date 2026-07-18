@@ -2,7 +2,7 @@
   <img src="logo.png" alt="M3U4Deck logo" width="350"/>
 </p>
 
-An M3U|M3U8 Playlists Player Built for Steam Deck
+A Free M3U|M3U8 Playlists Player Built for Steam Deck
 
 
 > [!CAUTION]
