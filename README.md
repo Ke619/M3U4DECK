@@ -24,7 +24,7 @@ A Free M3U|M3U8 Playlists Player Built for Steam Deck
 ## Getting Started
 1. Download the [latest release](https://github.com/Ke619/M3U4DECK/releases/latest)
 2. Double-click `Add M3U4Deck to Steam.desktop` to add it to your Steam library
-3. Launch from Steam, in Desktop Mode or Gaming Mode
+3. Launch from Steam in Gaming Mode
 
 ## MAG2M3U (standalone converter)
 Included separately for generating a playlist file from the terminal, without opening the app:
