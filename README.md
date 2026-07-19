@@ -44,6 +44,3 @@ Endorsed by [RELEASE THE QUACKEN 2.0](https://discord.gg/Ru7TFNm4rz)
 
 ## License
 All rights reserved. See [LICENSE](LICENSE).
-
----
-Made by [Ke619](https://github.com/Ke619)
