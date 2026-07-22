@@ -38,7 +38,7 @@ Included separately for generating a playlist file from the terminal, without op
 - ❤️ Support the project → see the Credits page in-app
 
 ## Credits
-Tested by **Crowland** and **JD Ross**. Built with love for the community, as a token of appreciation. ❤️
+Tested by **Crowland** and **JD Ross** on `CachyOS` and `SteamOS`. Built with love for the community, as a token of appreciation. ❤️
 
 Endorsed by [RELEASE THE QUACKEN 2.0](https://discord.gg/Ru7TFNm4rz)
 
